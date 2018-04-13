@@ -60,7 +60,7 @@ add_value_test() ->
   MonitorWithS = pollution:add_station("Lodolamacz Moskwa", {14, 10}, Monitor),
   Current = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS),
   ?assert(sets:is_element({{"Lodolamacz Moskwa", {14, 10}}, D, "X", 12}, (Current#monitor.meas)#measurements.all)),
-  ?assert(element(2, dict:find({"X", D},
+  ?assert(element(2, dict:find({"X", element(1, D)},
     (Current#monitor.meas)#measurements.type_date_to_meas)) =:= [{{"Lodolamacz Moskwa", {14, 10}}, D, "X", 12}]).
 
 
@@ -81,3 +81,20 @@ get_one_value_test() ->
   Current = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS),
   ?assert(pollution:get_one_value("X", D, {14, 10}, Current) =:= 12).
 
+get_station_mean_test() ->
+  D = calendar:local_time(),
+  Monitor = pollution:create_monitor(),
+  MonitorWithS = pollution:add_station("Lodolamacz Moskwa", {14, 10}, Monitor),
+  Current = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS),
+  Current2 = pollution:add_value({14, 10}, calendar:universal_time_to_local_time({{2014, 7, 10}, {20, 29, 12}}), "X", 10, Current),
+  ?assert(pollution:get_station_mean("X", "Lodolamacz Moskwa", Current2) == 11).
+
+
+get_daily_mean_test() ->
+  D = calendar:local_time(),
+  Monitor = pollution:create_monitor(),
+  MonitorWithS = pollution:add_station("Lodolamacz Moskwa", {14, 10}, Monitor),
+  MonitorWithS2 = pollution:add_station("Lodolamacz Kijow", {19, 97}, MonitorWithS),
+  Current = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS2),
+  Current2 = pollution:add_value({19, 97}, D, "X", 10, Current),
+  ?assert(pollution:get_daily_mean("X", element(1, D), Current2) == 11).
