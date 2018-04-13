@@ -29,8 +29,8 @@ create_monitor_test() ->
     {measurements,
       sets:new(),
       #{},
-      #{},
-      #{}
+      dict:new(),
+      dict:new()
     },
     {stations,
       sets:new(),
@@ -51,10 +51,7 @@ add_station_test() ->
 
 add_bad_station_test() ->
   Current = pollution:create_monitor(),
-  ?assertError(badkey, maps:get("Lodolamacz Moskwa",
-    (Current#monitor.stats)#stations.name_to_elem)),
-  ?assertError(badkey, maps:get({14, 10},
-    (Current#monitor.stats)#stations.coord_to_elem)).
+  ?assertNot(sets:is_element({"Lodolamacz Moskwa", {14, 10}}, (Current#monitor.stats)#stations.all)).
 
 
 add_value_test() ->
@@ -62,5 +59,25 @@ add_value_test() ->
   Monitor = pollution:create_monitor(),
   MonitorWithS = pollution:add_station("Lodolamacz Moskwa", {14, 10}, Monitor),
   Current = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS),
-  ?assert(sets:is_element({{"Lodolamacz Moskwa", {14, 10}}, D, "X", 12}, (Current#monitor.meas)#measurements.all)).
+  ?assert(sets:is_element({{"Lodolamacz Moskwa", {14, 10}}, D, "X", 12}, (Current#monitor.meas)#measurements.all)),
+  ?assert(element(2, dict:find({"X", D},
+    (Current#monitor.meas)#measurements.type_date_to_meas)) =:= [{{"Lodolamacz Moskwa", {14, 10}}, D, "X", 12}]).
+
+
+remove_value_test() ->
+  D = calendar:local_time(),
+  Monitor = pollution:create_monitor(),
+  MonitorWithS = pollution:add_station("Lodolamacz Moskwa", {14, 10}, Monitor),
+  CurrentButNotRemoved = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS),
+  Current = pollution:remove_value({14, 10}, D, "X", CurrentButNotRemoved),
+  ?assertNot(sets:is_element({{"Lodolamacz Moskwa", {14, 10}}, D, "X", 12}, (Current#monitor.meas)#measurements.all)),
+  ?assert(element(2, dict:find({"X", D}, (Current#monitor.meas)#measurements.type_date_to_meas)) == []),
+  ?assert(element(2, dict:find({"X", {"Lodolamacz Moskwa", {14, 10}}}, (Current#monitor.meas)#measurements.type_station_to_meas)) == []).
+
+get_one_value_test() ->
+  D = calendar:local_time(),
+  Monitor = pollution:create_monitor(),
+  MonitorWithS = pollution:add_station("Lodolamacz Moskwa", {14, 10}, Monitor),
+  Current = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS),
+  ?assert(pollution:get_one_value("X", D, {14, 10}, Current) =:= 12).
 
