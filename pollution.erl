@@ -17,22 +17,22 @@
 
 
 
-create_monitor () ->
+create_monitor() ->
   #monitor{}.
 
-parse_name_or_coords_to_station ({X, Y}, Monitor) -> maps:get({X, Y}, (Monitor#monitor.stats)#stations.coord_to_elem);
-parse_name_or_coords_to_station (Name, Monitor) -> maps:get(Name, (Monitor#monitor.stats)#stations.name_to_elem).
+parse_name_or_coords_to_station({X, Y}, Monitor) -> maps:get({X, Y}, (Monitor#monitor.stats)#stations.coord_to_elem);
+parse_name_or_coords_to_station(Name, Monitor) -> maps:get(Name, (Monitor#monitor.stats)#stations.name_to_elem).
 
 add_station(Name, {X, Y}, Monitor) ->
   S = {Name, {X, Y}},
   NewAllStations = sets:add_element(S, (Monitor#monitor.stats)#stations.all),
   NewCoordsToElem = maps:put({X, Y}, S, (Monitor#monitor.stats)#stations.coord_to_elem),
   NewNamesToElem = maps:put(Name, S, (Monitor#monitor.stats)#stations.name_to_elem),
-  Monitor#monitor{ stats = (Monitor#monitor.stats)#stations{
+  Monitor#monitor{stats = (Monitor#monitor.stats)#stations{
     all = NewAllStations,
     coord_to_elem = NewCoordsToElem,
     name_to_elem = NewNamesToElem
-  } }.
+  }}.
 
 add_value(Station, Date, Type, Value, Monitor) ->
   S = parse_name_or_coords_to_station(Station, Monitor),
@@ -41,15 +41,15 @@ add_value(Station, Date, Type, Value, Monitor) ->
   NewTypeDateToMeas = maps:put({Type, Date}, M, (Monitor#monitor.meas)#measurements.type_date_to_meas),
   NewTypeStationToMeas = maps:put({Type, S}, M, (Monitor#monitor.meas)#measurements.type_station_to_meas),
   NewTypeDateStationToMeas = maps:put({Type, S}, M, (Monitor#monitor.meas)#measurements.type_date_station_to_meas),
-  Monitor#monitor{ meas = (Monitor#monitor.meas)#measurements{
+  Monitor#monitor{meas = (Monitor#monitor.meas)#measurements{
     all = NewAllMeas,
     type_date_to_meas = NewTypeDateToMeas,
     type_station_to_meas = NewTypeStationToMeas,
     type_date_station_to_meas = NewTypeDateStationToMeas
-  } }.
+  }}.
 
-inner_add_value(Station, Date, Type, Value, Monitor) -> Monitor. %TODO
-remove_value({X, Y}, Date, Type, Monitor) -> Monitor. %TODO
+remove_value({X, Y}, Date, Type, Monitor) -> Monitor.
+
 inner_remove_value(Station, Date, Type, Monitor) -> Monitor. %TODO
 
 inner_get_one_value(Type, Date, Station, Monitor) -> Monitor. %TODO
@@ -57,7 +57,6 @@ inner_get_one_value(Type, Date, Station, Monitor) -> Monitor. %TODO
 
 get_station_mean(Type, Date, Monitor) -> Monitor. %TODO
 get_daily_meann(Type, Date, Monitor) -> Monitor. %TODO
-
 
 
 %% API
