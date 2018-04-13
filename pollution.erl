@@ -1,14 +1,12 @@
 %%%-------------------------------------------------------------------
 %%% @author osdnk
 %%% @copyright (C) 2018, <OSDNK>
-%%% @doc
-%%%
-%%% @end
 %%% Created : 12. Apr 2018 00:16
 %%%-------------------------------------------------------------------
 -module(pollution).
 -author("osdnk").
--export([create_monitor/0, add_station/3, add_value/5, remove_value/4, get_one_value/4, get_station_mean/3, get_daily_mean/3]).
+-export([create_monitor/0, add_station/3, add_value/5,
+  remove_value/4, get_one_value/4, get_station_mean/3, get_daily_mean/3]).
 
 -record(measurements, {all = sets:new(),
   type_date_station_to_meas = #{},
@@ -71,7 +69,7 @@ get_one_value(Type, Date, Station, Monitor) ->
 
 avg(L) ->
   sum(L, 0) / length(L).
-sum([H|T], Acc) ->
+sum([H | T], Acc) ->
   sum(T, element(4, H) + Acc);
 sum([], Acc) ->
   Acc.
@@ -90,8 +88,3 @@ get_daily_mean(Type, Day, Monitor) ->
     true -> avg(L);
     false -> 0
   end.
-
-
-
-
-%% API
