@@ -48,7 +48,11 @@ add_value(Station, Date, Type, Value, Monitor) ->
     type_date_station_to_meas = NewTypeDateStationToMeas
   }}.
 
-remove_value({X, Y}, Date, Type, Monitor) -> Monitor.
+remove_value(Station, Date, Type, Monitor) ->
+  S = parse_name_or_coords_to_station(Station, Monitor),
+  M = maps:get({Type, Date, S}, (Monitor#monitor.meas)#measurements.type_date_station_to_meas).
+
+
 
 inner_remove_value(Station, Date, Type, Monitor) -> Monitor. %TODO
 

@@ -49,6 +49,14 @@ add_station_test() ->
   ?assert(maps:get({14, 10},
     (Current#monitor.stats)#stations.coord_to_elem) =:= {"Lodolamacz Moskwa", {14, 10}}).
 
+add_bad_station_test() ->
+  Current = pollution:create_monitor(),
+  ?assertError(badkey, maps:get("Lodolamacz Moskwa",
+    (Current#monitor.stats)#stations.name_to_elem)),
+  ?assertError(badkey, maps:get({14, 10},
+    (Current#monitor.stats)#stations.coord_to_elem)).
+
+
 add_value_test() ->
   D = calendar:local_time(),
   Monitor = pollution:create_monitor(),
