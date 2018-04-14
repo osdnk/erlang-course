@@ -64,8 +64,7 @@ remove_value(Station, Date, Type, Monitor) ->
 
 get_one_value(Type, Date, Station, Monitor) ->
   S = parse_name_or_coords_to_station(Station, Monitor),
-  {_, _, _, V} = maps:get({Type, Date, S}, (Monitor#monitor.meas)#measurements.type_date_station_to_meas),
-  V.
+  element(4, maps:get({Type, Date, S}, (Monitor#monitor.meas)#measurements.type_date_station_to_meas)).
 
 avg(L) ->
   sum(L, 0) / length(L).
