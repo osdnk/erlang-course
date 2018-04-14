@@ -6,7 +6,7 @@
 -module(pollution).
 -author("osdnk").
 -export([create_monitor/0, add_station/3, add_value/5,
-  remove_value/4, get_one_value/4, get_station_mean/3, get_daily_mean/3]).
+  remove_value/4, get_one_value/4, get_station_mean/3, get_daily_mean/3, get_air_quality_index/3]).
 
 -record(measurements, {all = sets:new(),
   type_date_station_to_meas = #{},
@@ -87,3 +87,23 @@ get_daily_mean(Type, Day, Monitor) ->
     true -> avg(L);
     false -> 0
   end.
+
+get_max_of_meas(Date, Norm, PM) ->
+  Max = lists:foldl(fun (M, Max) ->
+    case (has_meas_same_date_and_hour(M, Date)) and (element(4, M) > Max) of
+      true -> element(4, M);
+      false -> Max
+    end  end, 0, PM),
+  Max / Norm.
+
+has_meas_same_date_and_hour({_, {D1, {H1, _, _}}, _, _}, {D2, {H2, _, _}}) -> (D1 =:= D2) and (H1 =:= H2).
+get_avg_by_type(S, Date, Monitor, Type, Norm) ->
+  X = dict:find({Type, S}, (Monitor#monitor.meas)#measurements.type_station_to_meas),
+  case X of
+    error -> 0;
+    {ok, PM} -> get_max_of_meas(Date, Norm, PM)
+  end.
+
+get_air_quality_index(Date, Station, Monitor) ->
+  S = parse_name_or_coords_to_station(Station, Monitor),
+  [get_avg_by_type(S, Date, Monitor, Type, Norm) || {Type, Norm} <- [{"PM10", 50}, {"PM2.5", 30}] ].

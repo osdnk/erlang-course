@@ -98,3 +98,12 @@ get_daily_mean_test() ->
   Current = pollution:add_value({14, 10}, D, "X", 12, MonitorWithS2),
   Current2 = pollution:add_value({19, 97}, D, "X", 10, Current),
   ?assert(pollution:get_daily_mean("X", element(1, D), Current2) == 11).
+
+get_air_quality_index_test() ->
+  D = calendar:local_time(),
+  Monitor = pollution:create_monitor(),
+  MonitorWithS = pollution:add_station("Lodolamacz Moskwa", {14, 10}, Monitor),
+  CurrentM = pollution:add_value({14, 10}, D, "PM10", 12, MonitorWithS),
+  CurrentM2 = pollution:add_value("Lodolamacz Moskwa", D, "PM10", 10, CurrentM),
+  Current = pollution:get_air_quality_index(D, {14, 10}, CurrentM2),
+  ?assert (Current == [0.24, 0]).
