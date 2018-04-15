@@ -90,13 +90,13 @@ get_daily_mean(Type, Day, Monitor) ->
 
 get_max_of_meas(Date, Norm, PM) ->
   Max = lists:foldl(fun (M, Max) ->
-    case (has_meas_same_date_and_hour(M, Date)) and (element(4, M) > Max) of
+    case (has_same_date_and_hour(element(2,M), Date)) and (element(4, M) > Max) of
       true -> element(4, M);
       false -> Max
     end  end, 0, PM),
   Max / Norm.
 
-has_meas_same_date_and_hour({_, {D1, {H1, _, _}}, _, _}, {D2, {H2, _, _}}) -> (D1 =:= D2) and (H1 =:= H2).
+has_same_date_and_hour({D1, {H1, _, _}}, {D2, {H2, _, _}}) -> (D1 =:= D2) and (H1 =:= H2).
 get_avg_by_type(S, Date, Monitor, Type, Norm) ->
   X = dict:find({Type, S}, (Monitor#monitor.meas)#measurements.type_station_to_meas),
   case X of
