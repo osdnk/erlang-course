@@ -22,6 +22,15 @@ parse_name_or_coords_to_station({X, Y}, Monitor) -> maps:get({X, Y}, (Monitor#mo
 parse_name_or_coords_to_station(Name, Monitor) -> maps:get(Name, (Monitor#monitor.stats)#stations.name_to_elem).
 
 add_station(Name, {X, Y}, Monitor) ->
+  case maps:is_key({X,Y},
+    (Monitor#monitor.stats)#stations.coord_to_elem) or
+    maps:is_key(Name,
+      (Monitor#monitor.stats)#stations.name_to_elem) of
+    true -> error;
+    false -> inner_add_station(Name, {X, Y}, Monitor)
+  end.
+
+inner_add_station(Name, {X, Y}, Monitor) ->
   S = {Name, {X, Y}},
   NewAllStations = sets:add_element(S, (Monitor#monitor.stats)#stations.all),
   NewCoordsToElem = maps:put({X, Y}, S, (Monitor#monitor.stats)#stations.coord_to_elem),
@@ -34,6 +43,13 @@ add_station(Name, {X, Y}, Monitor) ->
 
 add_value(Station, Date, Type, Value, Monitor) ->
   S = parse_name_or_coords_to_station(Station, Monitor),
+  case maps:is_key({Type, Date, S},
+    (Monitor#monitor.meas)#measurements.type_date_station_to_meas) of
+    true -> error;
+    false -> inner_add_value(S, Date, Type, Value, Monitor)
+  end.
+
+inner_add_value(S, Date, Type, Value, Monitor) ->
   M = {S, Date, Type, Value},
   NewAllMeas = sets:add_element(M, (Monitor#monitor.meas)#measurements.all),
   NewTypeDateToMeas = dict:append({Type, element(1, Date)}, M, (Monitor#monitor.meas)#measurements.type_date_to_meas),
