@@ -45,7 +45,7 @@ add_value(Station, Date, Type, Value, Monitor) ->
   S = parse_name_or_coords_to_station(Station, Monitor),
   case maps:is_key({Type, Date, S},
     (Monitor#monitor.meas)#measurements.type_date_station_to_meas) of
-    true -> error;
+    true -> {error, alredy_exists};
     false -> inner_add_value(S, Date, Type, Value, Monitor)
   end.
 
