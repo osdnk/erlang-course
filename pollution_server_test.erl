@@ -94,3 +94,16 @@ get_air_quality_index_test() ->
   {ok, Current} = pollution_server:get_air_quality_index(D1, {14, 10}),
   pollution_server:stop(),
   ?assertEqual (Current, [0.24, 0]).
+
+sequence_test() ->
+  D1 =  calendar:universal_time_to_local_time({{2014, 7, 10}, {20, 30, 12}}),
+  D2 =  calendar:universal_time_to_local_time({{2014, 7, 10}, {20, 29, 12}}),
+  pollution_server:start(),
+  pollution_server:add_station("Lodolamacz Moskwa", {14, 10}),
+  pollution_server:add_value({14, 10}, D1, "PM10", 12),
+  pollution_server:get_daily_mean("PM10", element(1, D1)),
+  pollution_server:get_station_mean("PM10", "Lodolamacz Moskwa"),
+  pollution_server:get_air_quality_index(D1, {14, 10}),
+  pollution_server:stop(),
+  ?assert(true).
+

@@ -91,24 +91,24 @@ loop(Monitor) ->
       loop(NewMonitor);
 
     {get_one_value, Pid, [Type, Date, Station]} ->
-      NewMonitor = pollution:get_one_value(Type, Date, Station, Monitor),
-      response(Pid, NewMonitor),
-      loop(NewMonitor);
+      Value = pollution:get_one_value(Type, Date, Station, Monitor),
+      response(Pid, Value),
+      loop(Monitor);
 
     {get_station_mean, Pid, [Type, Station]} ->
-      NewMonitor = pollution:get_station_mean(Type, Station, Monitor),
-      response(Pid, NewMonitor),
-      loop(NewMonitor);
+      Value = pollution:get_station_mean(Type, Station, Monitor),
+      response(Pid, Value),
+      loop(Monitor);
 
     {get_daily_mean, Pid, [Type, Day]} ->
-      NewMonitor = pollution:get_daily_mean(Type, Day, Monitor),
-      response(Pid, NewMonitor),
-      loop(NewMonitor);
+      Value = pollution:get_daily_mean(Type, Day, Monitor),
+      response(Pid, Value),
+      loop(Monitor);
 
     {get_air_quality_index, Pid, [Date, Station]} ->
-      NewMonitor = pollution:get_air_quality_index(Date, Station, Monitor),
-      response(Pid, NewMonitor),
-      loop(NewMonitor);
+      Value = pollution:get_air_quality_index(Date, Station, Monitor),
+      response(Pid, Value),
+      loop(Monitor);
 
     {stop, Pid, []} ->
       response(Pid, Monitor),
