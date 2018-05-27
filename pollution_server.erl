@@ -7,8 +7,9 @@
 %%% Created : 13. May 2018 10:23
 %%%-------------------------------------------------------------------
 -module(pollution_server).
+-behaviour(gen_server).
 -export([
-  init/0,
+  init/1,
   stop/0,
   crash/0,
   add_station/2,
@@ -18,104 +19,94 @@
   get_station_mean/2,
   get_daily_mean/2,
   get_air_quality_index/2,
-  start/0
+  start_link/0,
+  handle_cast/2,
+  handle_call/3
 ]).
 
 %% API start
 
+handle_cast(_, Value) ->
+  {noreply, Value}.
+
+handle_call(Req, _From, State) ->
+  {Value, State} = get_new_state(Req, State),
+  {reply, Value, State}.
 
 stop() ->
-  handler(stop, []).
+  gen_server:call(server,  {stop}).
 
 add_station(Name, Station) ->
-  handler(add_station, [Name, Station]).
+  gen_server:call(server, {add_station, Name, Station}).
 
 add_value(Station, Date, Type, Value) ->
-  handler(add_value, [Station, Date, Type, Value]).
+  gen_server:call(server, {add_value, Station, Date, Type, Value}).
 
 remove_value(Station, Date, Type) ->
-  handler(remove_value, [Station, Date, Type]).
+  gen_server:call(server, {remove_value, Station, Date, Type}).
 
 get_one_value(Type, Date, Station) ->
-  handler(get_one_value, [Type, Date, Station]).
+  gen_server:call(server, {get_one_value, Type, Date, Station}).
 
 get_station_mean(Type, Station) ->
-  handler(get_station_mean, [Type, Station]).
+  gen_server:call(server, {get_station_mean, Type, Station}).
 
 get_daily_mean(Type, Day) ->
-  handler(get_daily_mean, [Type, Day]).
+  gen_server:call(server, {get_daily_mean, Type, Day}).
 
 get_air_quality_index(Date, Station) ->
-  handler(get_air_quality_index, [Date, Station]).
+  gen_server:call(server, {get_air_quality_index, Date, Station}).
 
 crash() ->
-  %% io:format("pollution_server:crash()~n"),
-  handler(crash, []).
+  io:format("server:crash()~n"),
+  gen_server:call(server, {crash}).
 
 %% API end
 
-start() ->
-  register(server, spawn(fun () -> init() end)),
-  server.
 
-init() ->
-  Monitor = pollution:create_monitor(),
-  loop(Monitor).
+start_link() ->
+  gen_server:start_link({local, server}, pollution_server, [], []).
 
-handler(RequestType, Args) when is_list(Args) ->
-  server ! {RequestType, self(), Args},
-  receive
-    Message -> Message
-  after
-    1000 -> {error, timeeout}
-  end.
+init(_) ->
+  {ok, pollution:create_monitor()}.
 
-response(Pid, Monitor) ->
-  Pid ! {ok, Monitor}.
 
-loop(Monitor) ->
-  receive
-    {add_station, Pid, [Name, Station]} ->
+get_new_state(Req, Monitor) ->
+  case Req of
+    {add_station, Name, Station} ->
       NewMonitor = pollution:add_station(Name, Station, Monitor),
-      response(Pid, NewMonitor),
-      loop(NewMonitor);
+      {novalue, NewMonitor};
 
-    {add_value, Pid, [Station, Date, Type, Value]} ->
+    {add_value, Station, Date, Type, Value} ->
       NewMonitor = pollution:add_value(Station, Date, Type, Value, Monitor),
-      response(Pid, NewMonitor),
-      loop(NewMonitor);
+      {novalue, NewMonitor};
 
-    {remove_value, Pid, [Station, Date, Type]} ->
+    {remove_value, Station, Date, Type} ->
       NewMonitor = pollution:remove_value(Station, Date, Type, Monitor),
-      response(Pid, NewMonitor),
-      loop(NewMonitor);
+      {novalue, NewMonitor};
 
-    {get_one_value, Pid, [Type, Date, Station]} ->
+    {get_one_value, Type, Date, Station} ->
       Value = pollution:get_one_value(Type, Date, Station, Monitor),
-      response(Pid, Value),
-      loop(Monitor);
+      {Value, Monitor};
 
-    {get_station_mean, Pid, [Type, Station]} ->
+    {get_station_mean, Type, Station} ->
       Value = pollution:get_station_mean(Type, Station, Monitor),
-      response(Pid, Value),
-      loop(Monitor);
+      {Value, Monitor};
 
-    {get_daily_mean, Pid, [Type, Day]} ->
+    {get_daily_mean, Type, Day} ->
       Value = pollution:get_daily_mean(Type, Day, Monitor),
-      response(Pid, Value),
-      loop(Monitor);
+      {Value, Monitor};
 
-    {get_air_quality_index, Pid, [Date, Station]} ->
+    {get_air_quality_index, Date, Station} ->
       Value = pollution:get_air_quality_index(Date, Station, Monitor),
-      response(Pid, Value),
-      loop(Monitor);
+      {Value, Monitor};
 
-    {stop, Pid, []} ->
-      response(Pid, Monitor),
-      terminate()
+    {stop} ->
+      Monitor,
+      terminate();
 
-%    {crash, Pid, []} ->
-    %response(Pid, 1 / 0)
+    {crash, []} ->
+      1 / 0
   end.
 
 terminate() ->

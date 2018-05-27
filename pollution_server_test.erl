@@ -19,7 +19,7 @@
 
 add_value_test() ->
   D = calendar:local_time(),
-  pollution_server:start(),
+  pollution_server:start_link(),
   pollution_server:add_station("Lodolamacz Moskwa", {14, 10}),
   pollution_server:add_value({14, 10}, D, "X", 12),
   {ok, Current} = pollution_server:stop(),
