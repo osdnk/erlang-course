@@ -30,8 +30,8 @@ handle_cast(_, Value) ->
   {noreply, Value}.
 
 handle_call(Req, _From, State) ->
-  {Value, State} = get_new_state(Req, State),
-  {reply, Value, State}.
+  {Value, NewState} = get_new_state(Req, State),
+  {reply, Value, NewState}.
 
 stop() ->
   gen_server:call(server,  {stop}).
