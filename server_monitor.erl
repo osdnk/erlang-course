@@ -7,18 +7,24 @@
 %%% Created : 15. May 2018 11:38
 %%%-------------------------------------------------------------------
 -module(server_monitor).
+-behaviuor(supervisor).
 -author("osdnk").
 
 %% API
--export([init/0, start/0]).
+-export([start_link/0, init/1]).
 
-start() ->
-  PID = spawn(?MODULE, init, []),
-  register(supervisor, PID).
-init() ->
-  process_flag(trap_exit, true),
-  pollution_server:start_link(),
-  receive
-    {'EXIT', Pid, Reason} ->
-      init()
-  end.
+start_link() ->
+  supervisor:start_link({local, supervisor}, ?MODULE, []).
+
+init([]) ->
+  {ok, {
+    {one_for_one, 10, 1000},
+    [{pollution_server,
+      {pollution_server, start_link, []},
+      permanent, 5000, worker, [pollution_server]}
+    ]
+  }
+  }.
+
+
+
